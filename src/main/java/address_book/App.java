@@ -18,8 +18,8 @@ public class App {
         final String person2 = "Paul Robinson";
         final long ageDiffInDays = addressBookProcessor.getAgeDifferenceInDays(person1, person2);
 
-        System.out.println("Number of males: " + males);
-        System.out.println("Oldest person: " + oldestPerson);
+        System.out.format("Number of males: %d%n", males);
+        System.out.format("Oldest person: %s%n", oldestPerson);
         System.out.format("Age difference in days between %s and %s: %d%n", person1, person2, ageDiffInDays);
     }
 }

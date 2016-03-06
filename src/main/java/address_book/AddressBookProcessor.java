@@ -9,6 +9,9 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -21,7 +24,7 @@ public class AddressBookProcessor {
     public AddressBookProcessor(final String fileLocation) {
         path = Paths.get(fileLocation);
 
-        if(!Files.exists(path)) {
+        if (!Files.exists(path)) {
             throw new ProcessingException("File not found: " + path.toString());
         }
     }
@@ -35,19 +38,21 @@ public class AddressBookProcessor {
 
     public String findOldest() {
         return process(reader -> reader.lines()
+            .map(line -> splitTrim(line))
             .min((d1, d2) -> toDate(d1).compareTo(toDate(d2)))
-            .get());
+            .map(line -> line.toString().replaceAll("[\\[\\]]", ""))
+            .orElse("No oldest person found. Wrong or empty file."));
     }
 
     public long getAgeDifferenceInDays(final String person1, final String person2) {
-        LocalDateTime[] dates = process(reader -> reader.lines()
-            .filter(line -> cellValueOf(Column.NAME, line).equals(person1) || cellValueOf(Column.NAME, line).equals(person2))
+        final List<LocalDateTime> dates = process(reader -> reader.lines()
+            .map(line -> splitTrim(line))
+            .filter(line -> line.get(Column.NAME.index()).equals(person1) || line.get(Column.NAME.index()).equals(person2))
             .map(line -> toDate(line).atStartOfDay())
-            .collect(Collectors.toSet())
-            .toArray(new LocalDateTime[0])
+            .collect(Collectors.toCollection(ArrayList<LocalDateTime>::new))
         );
 
-        long daysDiff = Duration.between(dates[0], dates[1]).toDays();
+        long daysDiff = dates.size() >= 2 ? Duration.between(dates.get(0), dates.get(1)).toDays() : Long.MAX_VALUE;
 
         return Math.abs(daysDiff);
     }
@@ -60,11 +65,19 @@ public class AddressBookProcessor {
         }
     }
 
-    private LocalDate toDate(final String line) {
-        return LocalDate.parse(cellValueOf(Column.DATE, line), DateTimeFormatter.ofPattern("dd/MM/yy"));
+    private List<String> splitTrim(final String line) {
+        final ArrayList<String> trimmed = Arrays.stream(line.split(COMMA))
+            .map(e -> e.trim())
+            .collect(Collectors.toCollection(ArrayList<String>::new));
+
+        return trimmed;
+    }
+
+    private LocalDate toDate(final List<String> line) {
+        return LocalDate.parse(line.get(Column.DATE.index()).trim(), DateTimeFormatter.ofPattern("dd/MM/yy"));
     }
 
     private String cellValueOf(final Column column, final String line) {
-        return line.split(COMMA)[column.index()].trim();
+        return splitTrim(line).get(column.index());
     }
 }
