@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -39,7 +40,7 @@ public class AddressBookProcessor {
     public String findOldest() {
         return process(reader -> reader.lines()
             .map(line -> splitTrim(line))
-            .min((d1, d2) -> toDate(d1).compareTo(toDate(d2)))
+            .min(Comparator.comparing(this::toDate))
             .map(line -> line.toString().replaceAll("[\\[\\]]", ""))
             .orElse("No oldest person found. Wrong or empty file."));
     }

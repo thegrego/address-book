@@ -3,14 +3,28 @@ version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 9
+targetCompatibility = 9
 
-repositories {
-    mavenCentral()
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.0'
+    }
 }
 
 dependencies {
-    testCompile 'junit:junit:4.11'
-    testCompile 'org.assertj:assertj-core:3.3.0'
+    repositories {
+        mavenCentral()
+    }
+
+    testCompile(
+            'org.junit.jupiter:junit-jupiter-api:5.0.0',
+            'org.assertj:assertj-core:3.8.0'
+    )
+
+    testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.0.0'
 }
